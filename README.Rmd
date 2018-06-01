@@ -1,0 +1,112 @@
+---
+output: rmarkdown::github_document
+---
+
+# spdorling
+
+Create Dorling Cartograms from Contiguous Region Shapefiles
+
+## Description
+
+Create Dorling Cartograms from Contiguous Region Shapefiles
+
+## What's Inside The Tin
+
+- `dorling_from_sp`:	Compute center coordinates, circle radii and Dorling polygons from input polygons and values
+
+The following functions are implemented:
+
+## Installation
+
+```{r eval=FALSE}
+devtools::install_github("hrbrmstr/spdorling")
+```
+
+```{r message=FALSE, warning=FALSE, error=FALSE, include=FALSE}
+options(width=120)
+knitr::opts_chunk$set(fig.retina=2)
+```
+
+## Usage
+
+```{r message=FALSE, warning=FALSE, error=FALSE}
+library(spdorling)
+
+# current verison
+packageVersion("spdorling")
+
+```
+
+### Lower 48 U.S.A.
+
+```{r message = FALSE}
+library(albersusa) # hrbrmstr/albersusa
+library(hrbrthemes)
+library(tidyverse)
+
+usa <- albersusa::usa_composite(proj = "laea")
+usa <- subset(usa, !(name %in% c("Alaska", "Hawaii", "District of Columbia")))
+
+set.seed(2018)
+usa$val <- sample(10000, 48)
+
+dor <- dorling_from_sp(usa, value=usa$val, quiet=FALSE)
+
+discs_df <- fortify(dor$discs)
+
+as_data_frame(dor$xy) %>% 
+  set_names(c("lng", "lat")) %>% 
+  mutate(iso2c = usa$iso_3166_2) -> usa_labs
+
+ggplot() +
+  geom_polygon(
+    data = discs_df, aes(long, lat, group=group), 
+    size=0.125, color="#2b2b2b", fill="#00000000"
+  ) +
+  geom_text(data = usa_labs, aes(lng, lat, label=iso2c), size=2) +
+  coord_fixed() +
+  labs(x=NULL, y=NULL) +
+  theme_ipsum_rc(grid="") +
+  theme(axis.text=element_blank())
+```
+
+### Swiss Cantons
+
+```{r}
+library(sp)
+library(rgdal)
+
+readOGR(
+  system.file("extdat", "swiss-cantons.json", package="spdorling"),
+  verbose = FALSE,
+  stringsAsFactors = FALSE
+) -> cantons
+
+# convert it to equal area
+SpatialPolygonsDataFrame(
+  spTransform(cantons, CRS("+proj=aea +lat_1=45.96 +lat_2=47.50 +lon_0=8.34")),
+  data = cantons@data
+) -> cantons
+
+set.seed(2018)
+cantons$val <- sample(10000, nrow(cantons@data))
+
+dor <- dorling_from_sp(cantons, value=cantons$val, quiet=FALSE)
+
+discs_df <- fortify(dor$discs)
+
+as_data_frame(dor$xy) %>% 
+  set_names(c("lng", "lat")) %>% 
+  mutate(name = cantons$name) -> cantons_labs
+
+ggplot() +
+  geom_polygon(
+    data = discs_df, aes(long, lat, group=group), 
+    size=0.125, color="#2b2b2b", fill="#00000000"
+  ) +
+  geom_text(data = cantons_labs, aes(lng, lat, label=name), size=2) +
+  coord_fixed() +
+  labs(x=NULL, y=NULL) +
+  theme_ipsum_rc(grid="") +
+  theme(axis.text=element_blank())
+```
