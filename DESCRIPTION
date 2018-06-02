@@ -4,10 +4,10 @@ Title: Create Dorling Cartograms from Contiguous Region Shapefiles
 Version: 0.1.0
 Date: 2018-06-01
 Authors@R: c(
-    person("Bob", "Rudis", email = "bob@rud.is", role = c("aut", "cre"), 
+    person("Bob", "Rudis", email = "bob@rud.is", role = c("aut", "ctb"), 
            comment = c(ORCID = "0000-0001-5670-2640")),
     person("Mathieu", "Rajerison", comment="Original author",
-           role = c("aut", "ctb"))
+           role = c("aut", "cre"))
   )
 Maintainer: Bob Rudis <bob@rud.is>
 Description: Create Dorling cartograms from contiguous region shapefiles.
